@@ -15,12 +15,14 @@ def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
     font_size = width / 2 if width <= height else height / 2
 
     draw = ImageDraw.Draw(img)
-
     font = ImageFont.truetype("LiberationSans-Bold.ttf", int(font_size))
     text = "LGTM!"
 
-    # TODO adjust place of text(https://stackoverflow.com/questions/1970807/center-middle-align-text-with-pil)
-    x, y = 40, 40
+    # get text size
+    text_w, text_h = draw.textsize(text, font)    
+
+    # adjust place of text
+    x, y = (width - text_w)/2, (height - text_h)/2
 
     # draw border
     draw.text((x, y-1), text, font=font, fill=shadowcolor)
