@@ -12,13 +12,14 @@ def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
     width, height = img.size
 
     # adjust font size
-    font_size = width / 2 if width <= height else height / 2
+    font_size = width / 2.5 if width <= height else height / 2.5
 
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype("LiberationSans-Bold.ttf", int(font_size))
     text = "LGTM!"
 
     # get text size
+    # // TODO if w or h over image w or h, resize font
     text_w, text_h = draw.textsize(text, font)    
 
     # adjust place of text
@@ -45,5 +46,5 @@ def get_img(url):
     img_binary = io.BytesIO(image_read)
     return img_binary
 
-img_binary = get_img('https://pbs.twimg.com/media/DWZ0jPVV4AAFm7S.jpg:large')
+img_binary = get_img('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSjENgJV7T_-hiiCmfqVSaYq6Eb3M0u_x4AYq84qp_wSyJNYm5uA')
 lgtm(img_binary)
