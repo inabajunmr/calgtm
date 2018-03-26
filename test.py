@@ -12,15 +12,21 @@ def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
     width, height = img.size
 
     # adjust font size
-    font_size = width / 2.5 if width <= height else height / 2.5
+    font_size = width / 2 if width <= height else height / 2
 
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("LiberationSans-Bold.ttf", int(font_size))
-    text = "LGTM!"
 
-    # get text size
-    # // TODO if w or h over image w or h, resize font
-    text_w, text_h = draw.textsize(text, font)    
+    # calculate text size
+    font_name = "LiberationSans-Bold.ttf"
+    font = ImageFont.truetype(font_name, int(font_size))
+    text_w, text_h = draw.textsize(text, font)
+
+    # resize font size until text does not run off image.
+    while text_w > width or text_h > height:
+        font_size = font_size - 1
+        font = ImageFont.truetype(font_name, int(font_size))
+        text = "LGTM!"
+        text_w, text_h = draw.textsize(text, font)
 
     # adjust place of text
     x, y = (width - text_w)/2, (height - text_h)/2
