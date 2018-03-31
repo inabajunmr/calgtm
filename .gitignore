@@ -1,1 +1,13 @@
-out.jpg
+PIL/
+Pillow-5.0.0.dist-info/
+certifi-2018.1.18.dist-info/
+certifi/
+chardet-3.0.4.dist-info/
+chardet/
+deploy_package.zip
+idna-2.6.dist-info/
+idna/
+requests-2.18.4.dist-info/
+requests/
+urllib3-1.22.dist-info/
+urllib3/
