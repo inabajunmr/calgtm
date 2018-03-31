@@ -3,7 +3,7 @@
 ## Build
 ### Prepare for first build
 ```
-docker run -v "$PWD":/var/task mylambda
+docker build -t mylambda .
 ```
 ### Build command
 ```
