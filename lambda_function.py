@@ -8,7 +8,7 @@ def lambda_handler(event, context):
     img_url = event["queryStringParameters"]['img']
 
     try:
-        img_binary = get_img(img_url)
+        img_binary = get_img(assemble_query_parameter(event["queryStringParameters"], img_url))
         lgtm_img_binary = lgtm(img_binary)
         return generate_response(200, {"Content-Type": "image/jpeg"}, True, base64.b64encode(lgtm_img_binary).decode('utf-8'))
     except BaseException as err:
@@ -27,6 +27,15 @@ def generate_response(status_code, headers, is_base_64_encoded, body):
         "body" : body
     }
     return response
+
+# when img parameter's url has multiple query parameters, this can not be interpreted part of url.
+# so must assemble img to original image url
+def assemble_query_parameter(query_parameters, url):
+    for k, v in query_parameters.items():
+        if k != "img":
+            url = url + "&" + k + "=" + v
+
+    return url
 
 def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
     img = Image.open(img_binary)
@@ -84,9 +93,11 @@ def get_img(url):
 # context = {}
 # event = {
 #     "queryStringParameters" : {
-#         "img" : "https://example.jpg"
+#         "img" : "https://example.com",
+#         "key1" : "value1",
+#         "key2" : "value2"
 #     }
 # }
 
 # response = lambda_handler(event, context)
-# print(response["body"])
+# # print(response["body"])
