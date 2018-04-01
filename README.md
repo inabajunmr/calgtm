@@ -30,7 +30,7 @@ docker run -v "$PWD":/var/task mylambda
 This command create deploy_package.zip.
 
 ## Constitution
-
+![](./constitution.png)
 
 ## Deploy
 ### AWS Lambda
