@@ -44,5 +44,5 @@ Add follow headers by CloudFront.
 
 | key | value |
 ----|---- 
-| TAcceptD1 | image/jpeg |
+| Accept | image/jpeg |
 | Content-Type | image/jpeg |
