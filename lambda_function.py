@@ -6,6 +6,7 @@ import base64
 
 def lambda_handler(event, context):
     img_url = event["queryStringParameters"]['img']
+
     try:
         img_binary = get_img(img_url)
         lgtm_img_binary = lgtm(img_binary)
@@ -75,7 +76,7 @@ def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
 
 def get_img(url):
     req = urllib.request.Request(url)
-    image_read = urllib.request.urlopen(req).read()
+    image_read = urllib.request.urlopen(req, timeout=3).read()
     img_binary = io.BytesIO(image_read)
     return img_binary
 
