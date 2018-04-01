@@ -6,17 +6,25 @@ import base64
 
 def lambda_handler(event, context):
     img_url = event["queryStringParameters"]['img']
-    # TODO handling exception
-    img_binary = get_img(img_url)
-    lgtm_img_binary = lgtm(img_binary)
+    try:
+        img_binary = get_img(img_url)
+        lgtm_img_binary = lgtm(img_binary)
+        return generate_response(200, {"Content-Type": "image/jpeg"}, True, base64.b64encode(lgtm_img_binary).decode('utf-8'))
+    except BaseException as err:
+        # when occur error, return default error lgtm image.
+        img_binary = io.BytesIO(open("error_image.jpg", "rb").read())
+        img = Image.open(img_binary)
+        output = io.BytesIO()
+        img.save(output, format='JPEG')
+        return generate_response(200, {"Content-Type": "image/jpeg"}, True, base64.b64encode(output.getvalue()).decode('utf-8'))
+
+def generate_response(status_code, headers, is_base_64_encoded, body):
     response = {
-       "statusCode": 200,
-       "headers":{
-           "Content-Type": "image/jpeg",
-       },
-       "isBase64Encoded": True,
-        "body" : base64.b64encode(lgtm_img_binary).decode('utf-8')
-       }
+       "statusCode": status_code,
+       "headers": headers,
+       "isBase64Encoded": is_base_64_encoded,
+        "body" : body
+    }
     return response
 
 def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
@@ -71,7 +79,7 @@ def get_img(url):
     img_binary = io.BytesIO(image_read)
     return img_binary
 
-# for test
+# # for test
 # context = {}
 # event = {
 #     "queryStringParameters" : {
