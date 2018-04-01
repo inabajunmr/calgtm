@@ -7,7 +7,7 @@ Specify image file url to follow url's query parameter as `img`.
 
 http://calgtm.inabajun.work/?img=http://example.com/yourimage.jpg
 
-## sample
+### Sample
 
 Original(http://example.com/cat)
 
@@ -28,6 +28,9 @@ docker build -t mylambda .
 docker run -v "$PWD":/var/task mylambda
 ```
 This command create deploy_package.zip.
+
+## Constitution
+
 
 ## Deploy
 ### AWS Lambda
