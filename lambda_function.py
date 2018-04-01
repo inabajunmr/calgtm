@@ -9,7 +9,6 @@ def lambda_handler(event, context):
     # TODO handling exception
     img_binary = get_img(img_url)
     lgtm_img_binary = lgtm(img_binary)
-    
     response = {
        "statusCode": 200,
        "headers":{
@@ -71,3 +70,14 @@ def get_img(url):
     image_read = urllib.request.urlopen(req).read()
     img_binary = io.BytesIO(image_read)
     return img_binary
+
+# for test
+# context = {}
+# event = {
+#     "queryStringParameters" : {
+#         "img" : "https://example.jpg"
+#     }
+# }
+
+# response = lambda_handler(event, context)
+# print(response["body"])
