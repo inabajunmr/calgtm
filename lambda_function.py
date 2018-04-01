@@ -3,6 +3,8 @@ from PIL import Image, ImageFont, ImageDraw
 import urllib.request
 import io
 import base64
+# import traceback
+
 
 def lambda_handler(event, context):
     img_url = event["queryStringParameters"]['img']
@@ -12,6 +14,8 @@ def lambda_handler(event, context):
         lgtm_img_binary = lgtm(img_binary)
         return generate_response(200, {"Content-Type": "image/jpeg"}, True, base64.b64encode(lgtm_img_binary).decode('utf-8'))
     except BaseException as err:
+        # print(traceback.format_exc())
+
         # when occur error, return default error lgtm image.
         img_binary = io.BytesIO(open("error_image.jpg", "rb").read())
         img = Image.open(img_binary)
@@ -79,6 +83,12 @@ def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
     # draw main text
     draw.text((x, y), text, font=font, fill=fillcolor)
 
+    # discarding the alpha channel. JPEGs can't represent an alpha channel.
+    if img.mode in ('RGBA', 'LA'):
+        background = Image.new(img.mode[:-1], img.size, "white")
+        background.paste(img, img.split()[-1])
+        img = background
+
     output = io.BytesIO()
     img.save(output, format='JPEG')
     return output.getvalue()
@@ -89,15 +99,15 @@ def get_img(url):
     img_binary = io.BytesIO(image_read)
     return img_binary
 
-# # for test
+# for test
 # context = {}
 # event = {
 #     "queryStringParameters" : {
-#         "img" : "https://example.com",
+#         "img" : "http://example.com/image.jpg",
 #         "key1" : "value1",
 #         "key2" : "value2"
 #     }
 # }
 
 # response = lambda_handler(event, context)
-# # print(response["body"])
+# print(response["body"])
