@@ -37,12 +37,12 @@ This command create deploy_package.zip.
 Upload deploy_package.zip to AWS Lambda.
 
 ### API Gateway
-Lambda ploxy integration and specify binary media type for Content-Type image/jpeg.
+Lambda ploxy integration and specify binary media type for Content-Type `image/*`.
 
 ### CloudFront
 Add follow headers by CloudFront.
 
 | key | value |
 ----|---- 
-| Accept | image/jpeg |
-| Content-Type | image/jpeg |
+| Accept | image/png,image/jpeg,image/gif |
+| Content-Type | image/png,image/jpeg,image/gif |
