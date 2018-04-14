@@ -4,6 +4,7 @@ import urllib.request
 import io
 import base64
 # import traceback
+# import sys
 
 
 def lambda_handler(event, context):
@@ -11,10 +12,27 @@ def lambda_handler(event, context):
 
     try:
         img_binary = get_img(assemble_query_parameter(event["queryStringParameters"], img_url))
-        lgtm_img_binary = lgtm(img_binary)
-        return generate_response(200, {"Content-Type": "image/jpeg"}, True, base64.b64encode(lgtm_img_binary).decode('utf-8'))
+        img = Image.open(img_binary)
+        format = img.format
+
+        output = io.BytesIO()
+        if format == "GIF":
+            lgtm_gif = process_gif(img_binary)        
+
+            if len(lgtm_gif) == 1:
+                lgtm_gif[0].save(output, optimize=True, format=format)
+            else:
+                lgtm_gif[0].save(output, optimize=True, save_all=True, append_images=lgtm_gif[1:], loop=1000, format=format)
+        else:            
+            img = Image.open(img_binary)
+            lgtm_image = lgtm(img)
+            lgtm_image.save(output, optimize=True, format=format)
+
+        return generate_response(200, {"Content-Type": generate_content_type(format)}, True, base64.b64encode(output.getvalue()).decode('utf-8'))
+        
     except BaseException as err:
-        # print(traceback.format_exc())
+        # debug
+        # sys.stderr.write(traceback.format_exc())
 
         # when occur error, return default error lgtm image.
         img_binary = io.BytesIO(open("error_image.jpg", "rb").read())
@@ -23,6 +41,10 @@ def lambda_handler(event, context):
         img.save(output, format='JPEG')
         return generate_response(200, {"Content-Type": "image/jpeg"}, True, base64.b64encode(output.getvalue()).decode('utf-8'))
 
+
+def generate_content_type (format):
+    return "image/" + format.lower()
+    
 def generate_response(status_code, headers, is_base_64_encoded, body):
     response = {
        "statusCode": status_code,
@@ -41,13 +63,7 @@ def assemble_query_parameter(query_parameters, url):
 
     return url
 
-def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
-    img = Image.open(img_binary)
-
-    # convert to jpg
-    img.convert("RGB")
-    # compress for too big image
-    img.thumbnail((1024, 1024), Image.ANTIALIAS)
+def lgtm(img, fillcolor="white", shadowcolor="black"):
     width, height = img.size
 
     # adjust font size
@@ -89,15 +105,57 @@ def lgtm(img_binary, fillcolor="white", shadowcolor="black"):
         background.paste(img, img.split()[-1])
         img = background
 
-    output = io.BytesIO()
-    img.save(output, format='JPEG')
-    return output.getvalue()
+    return img
 
 def get_img(url):
     req = urllib.request.Request(url)
     image_read = urllib.request.urlopen(req, timeout=3).read()
     img_binary = io.BytesIO(image_read)
     return img_binary
+
+# reference:https://stackoverflow.com/questions/41718892/pillow-resizing-a-gif
+def get_gif_mode(img_binary):
+    img = Image.open(img_binary)
+    try:
+        while True:
+            if img.tile:
+                if img.tile[0][1][2:] != img.size:
+                    return "partial"
+            img.seek(img.tell() + 1)
+    except EOFError:
+        pass
+    return "full"
+
+def process_gif(img_binary):
+    img = Image.open(img_binary)
+    mode = get_gif_mode(img_binary)
+
+    p = img.getpalette()
+    last_frame = img.convert('RGBA')
+    all_frames = []
+    i = 0
+    try:
+        while True:
+            if not img.getpalette():
+                img.putpalette(p)
+
+            new_frame = Image.new('RGBA', img.size)
+
+            if mode == 'partial':
+                new_frame.paste(last_frame)
+
+            new_frame.paste(img, (0, 0), img.convert('RGBA'))
+
+            new_frame = lgtm(new_frame)
+            all_frames.append(new_frame)
+
+            i += 1
+            last_frame = new_frame
+            img.seek(img.tell() + 1)
+    except EOFError:
+        pass
+
+    return all_frames
 
 # for test
 # context = {}
