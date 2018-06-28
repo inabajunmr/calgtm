@@ -87,14 +87,18 @@ def lgtm(img, fillcolor="white", shadowcolor="black"):
     x, y = (width - text_w)/2, (height - text_h)/2
 
     # draw border
-    draw.text((x, y-1), text, font=font, fill=shadowcolor)
-    draw.text((x, y+1), text, font=font, fill=shadowcolor)
-    draw.text((x+1, y-1), text, font=font, fill=shadowcolor)
-    draw.text((x+1, y), text, font=font, fill=shadowcolor)
-    draw.text((x+1, y+1), text, font=font, fill=shadowcolor)
-    draw.text((x-1, y+1), text, font=font, fill=shadowcolor)
-    draw.text((x-1, y), text, font=font, fill=shadowcolor)
-    draw.text((x-1, y-1), text, font=font, fill=shadowcolor)
+    border_bold = width/200
+    if border_bold < 3:
+        border_bold = 3
+
+    draw.text((x,             y-border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x,             y+border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x+border_bold, y-border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x+border_bold, y), text, font=font, fill=shadowcolor)
+    draw.text((x+border_bold, y+border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x-border_bold, y+border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x-border_bold, y), text, font=font, fill=shadowcolor)
+    draw.text((x-border_bold, y-border_bold), text, font=font, fill=shadowcolor)
 
     # draw main text
     draw.text((x, y), text, font=font, fill=fillcolor)
