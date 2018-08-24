@@ -3,15 +3,38 @@ from PIL import Image, ImageFont, ImageDraw
 import urllib.request
 import io
 import base64
-# import traceback
-# import sys
+import logging
+import time
+import re
+from logging import getLogger, StreamHandler, Formatter
 
+# log setting
+logger = getLogger("Logger")
+logger.setLevel(logging.DEBUG)
+stream_handler = StreamHandler()
+stream_handler.setLevel(logging.DEBUG)
+handler_format = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler.setFormatter(handler_format)
+logger.addHandler(stream_handler)
 
 def lambda_handler(event, context):
     img_url = event["queryStringParameters"]['img']
+    if(re.match("^https?://.*" , img_url) == None):
+        img_url = "http://" + img_url
 
-    try:
-        img_binary = get_img(assemble_query_parameter(event["queryStringParameters"], img_url))
+    try: 
+        try:
+            logger.debug("Start get image")
+            img_binary = get_img(assemble_query_parameter(event["queryStringParameters"], img_url))
+
+            logger.debug("End get image")
+        except BaseException as err:
+            if(re.match("^https?://.*" , img_url) == None):
+                img_url = "https://" + img_url
+                logger.debug("Start get image")
+                img_binary = get_img(assemble_query_parameter(event["queryStringParameters"], img_url))
+                logger.debug("End get image")
+
         img = Image.open(img_binary)
         format = img.format
 
@@ -24,17 +47,22 @@ def lambda_handler(event, context):
             else:
                 lgtm_gif[0].save(output, optimize=True, save_all=True, append_images=lgtm_gif[1:], loop=1000, format=format)
         else:            
+            logger.debug("Start open image")
             img = Image.open(img_binary)
+            logger.debug("end open image")
+            logger.debug("Start lgtm image")
             lgtm_image = lgtm(img)
+            logger.debug("end lgtm image")
+            logger.debug("Start save image")
             lgtm_image.save(output, optimize=True, format=format)
+            logger.debug("End lgtm image")
 
         return generate_response(200, {"Content-Type": generate_content_type(format)}, True, base64.b64encode(output.getvalue()).decode('utf-8'))
         
     except BaseException as err:
-        # debug
-        # sys.stderr.write(traceback.format_exc())
+        logger.debug("Error")
+        logger.debug(err)
 
-        # when occur error, return default error lgtm image.
         img_binary = io.BytesIO(open("error_image.jpg", "rb").read())
         img = Image.open(img_binary)
         output = io.BytesIO()
