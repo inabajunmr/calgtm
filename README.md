@@ -46,3 +46,7 @@ Add follow headers by CloudFront.
 ----|---- 
 | Accept | image/png,image/jpeg,image/gif |
 | Content-Type | image/png,image/jpeg,image/gif |
+
+# Development
+## formatter
+https://github.com/google/yapf
