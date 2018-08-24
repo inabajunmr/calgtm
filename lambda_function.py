@@ -13,26 +13,32 @@ logger = getLogger("Logger")
 logger.setLevel(logging.DEBUG)
 stream_handler = StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
-handler_format = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler_format = Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 stream_handler.setFormatter(handler_format)
 logger.addHandler(stream_handler)
 
+
 def lambda_handler(event, context):
     img_url = event["queryStringParameters"]['img']
-    if(re.match("^https?://.*" , img_url) == None):
+    if (re.match("^https?://.*", img_url) == None):
         img_url = "http://" + img_url
 
-    try: 
+    try:
         try:
             logger.debug("Start get image")
-            img_binary = get_img(assemble_query_parameter(event["queryStringParameters"], img_url))
+            img_binary = get_img(
+                assemble_query_parameter(event["queryStringParameters"],
+                                         img_url))
 
             logger.debug("End get image")
         except BaseException as err:
-            if(re.match("^https?://.*" , img_url) == None):
+            if (re.match("^https?://.*", img_url) == None):
                 img_url = "https://" + img_url
                 logger.debug("Start get image")
-                img_binary = get_img(assemble_query_parameter(event["queryStringParameters"], img_url))
+                img_binary = get_img(
+                    assemble_query_parameter(event["queryStringParameters"],
+                                             img_url))
                 logger.debug("End get image")
 
         img = Image.open(img_binary)
@@ -40,13 +46,19 @@ def lambda_handler(event, context):
 
         output = io.BytesIO()
         if format == "GIF":
-            lgtm_gif = process_gif(img_binary)        
+            lgtm_gif = process_gif(img_binary)
 
             if len(lgtm_gif) == 1:
                 lgtm_gif[0].save(output, optimize=True, format=format)
             else:
-                lgtm_gif[0].save(output, optimize=True, save_all=True, append_images=lgtm_gif[1:], loop=1000, format=format)
-        else:            
+                lgtm_gif[0].save(
+                    output,
+                    optimize=True,
+                    save_all=True,
+                    append_images=lgtm_gif[1:],
+                    loop=1000,
+                    format=format)
+        else:
             logger.debug("Start open image")
             img = Image.open(img_binary)
             logger.debug("end open image")
@@ -57,8 +69,10 @@ def lambda_handler(event, context):
             lgtm_image.save(output, optimize=True, format=format)
             logger.debug("End lgtm image")
 
-        return generate_response(200, {"Content-Type": generate_content_type(format)}, True, base64.b64encode(output.getvalue()).decode('utf-8'))
-        
+        return generate_response(
+            200, {"Content-Type": generate_content_type(format)}, True,
+            base64.b64encode(output.getvalue()).decode('utf-8'))
+
     except BaseException as err:
         logger.debug("Error")
         logger.debug(err)
@@ -67,20 +81,24 @@ def lambda_handler(event, context):
         img = Image.open(img_binary)
         output = io.BytesIO()
         img.save(output, format='JPEG')
-        return generate_response(200, {"Content-Type": "image/jpeg"}, True, base64.b64encode(output.getvalue()).decode('utf-8'))
+        return generate_response(
+            200, {"Content-Type": "image/jpeg"}, True,
+            base64.b64encode(output.getvalue()).decode('utf-8'))
 
 
-def generate_content_type (format):
+def generate_content_type(format):
     return "image/" + format.lower()
-    
+
+
 def generate_response(status_code, headers, is_base_64_encoded, body):
     response = {
-       "statusCode": status_code,
-       "headers": headers,
-       "isBase64Encoded": is_base_64_encoded,
-        "body" : body
+        "statusCode": status_code,
+        "headers": headers,
+        "isBase64Encoded": is_base_64_encoded,
+        "body": body
     }
     return response
+
 
 # when img parameter's url has multiple query parameters, this can not be interpreted part of url.
 # so must assemble img to original image url
@@ -90,6 +108,7 @@ def assemble_query_parameter(query_parameters, url):
             url = url + "&" + k + "=" + v
 
     return url
+
 
 def lgtm(img, fillcolor="white", shadowcolor="black"):
     width, height = img.size
@@ -112,21 +131,25 @@ def lgtm(img, fillcolor="white", shadowcolor="black"):
         text_w, text_h = draw.textsize(text, font)
 
     # adjust place of text
-    x, y = (width - text_w)/2, (height - text_h)/2
+    x, y = (width - text_w) / 2, (height - text_h) / 2
 
     # draw border
-    border_bold = width/200
+    border_bold = width / 200
     if border_bold < 3:
         border_bold = 3
 
-    draw.text((x,             y-border_bold), text, font=font, fill=shadowcolor)
-    draw.text((x,             y+border_bold), text, font=font, fill=shadowcolor)
-    draw.text((x+border_bold, y-border_bold), text, font=font, fill=shadowcolor)
-    draw.text((x+border_bold, y), text, font=font, fill=shadowcolor)
-    draw.text((x+border_bold, y+border_bold), text, font=font, fill=shadowcolor)
-    draw.text((x-border_bold, y+border_bold), text, font=font, fill=shadowcolor)
-    draw.text((x-border_bold, y), text, font=font, fill=shadowcolor)
-    draw.text((x-border_bold, y-border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x, y - border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x, y + border_bold), text, font=font, fill=shadowcolor)
+    draw.text(
+        (x + border_bold, y - border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x + border_bold, y), text, font=font, fill=shadowcolor)
+    draw.text(
+        (x + border_bold, y + border_bold), text, font=font, fill=shadowcolor)
+    draw.text(
+        (x - border_bold, y + border_bold), text, font=font, fill=shadowcolor)
+    draw.text((x - border_bold, y), text, font=font, fill=shadowcolor)
+    draw.text(
+        (x - border_bold, y - border_bold), text, font=font, fill=shadowcolor)
 
     # draw main text
     draw.text((x, y), text, font=font, fill=fillcolor)
@@ -139,11 +162,13 @@ def lgtm(img, fillcolor="white", shadowcolor="black"):
 
     return img
 
+
 def get_img(url):
     req = urllib.request.Request(url)
     image_read = urllib.request.urlopen(req, timeout=3).read()
     img_binary = io.BytesIO(image_read)
     return img_binary
+
 
 # reference:https://stackoverflow.com/questions/41718892/pillow-resizing-a-gif
 def get_gif_mode(img_binary):
@@ -157,6 +182,7 @@ def get_gif_mode(img_binary):
     except EOFError:
         pass
     return "full"
+
 
 def process_gif(img_binary):
     img = Image.open(img_binary)
@@ -188,6 +214,7 @@ def process_gif(img_binary):
         pass
 
     return all_frames
+
 
 # for test
 # context = {}
